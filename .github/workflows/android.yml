@@ -21,7 +21,7 @@ jobs:
 
     - name: Generate Gradle Wrapper Automatically
       run: |
-        gradle wrapper --gradle-version 8.1.1
+        gradle wrapper --gradle-version 8.2
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
