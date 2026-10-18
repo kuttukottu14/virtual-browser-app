@@ -8,7 +8,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Select Virtual Browser Engine:"
+        android:text="Select Browser Engine:"
         android:textStyle="bold"
         android:textSize="16sp"
         android:layout_marginBottom="8dp"/>
@@ -23,29 +23,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginBottom="12dp">
-
-        <EditText
-            android:id="@+id/proxyIpEditText"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="2"
-            android:hint="Proxy IP Address"
-            android:inputType="text" />
-
-        <EditText
-            android:id="@+id/proxyPortEditText"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:hint="Port"
-            android:inputType="number" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
         android:layout_marginBottom="16dp">
 
         <EditText
@@ -53,7 +30,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="3"
-            android:hint="https://whoer.net"
+            android:hint="https://www.google.com"
             android:inputType="textUri" />
 
         <Button
@@ -61,7 +38,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="LAUNCH" />
+            android:text="SEARCH" />
     </LinearLayout>
 
     <WebView
@@ -70,3 +47,4 @@
         android:layout_height="match_parent" />
 
 </LinearLayout>
+
