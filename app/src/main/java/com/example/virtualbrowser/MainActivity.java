@@ -5,29 +5,31 @@ import android.view.View;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.webkit.ProxyConfig;
-import androidx.webkit.ProxyController;
-import androidx.webkit.WebViewFeature;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
 
     private WebView webView;
-    private EditText proxyIpEditText, proxyPortEditText, urlEditText;
+    private EditText urlEditText;
     private Button launchButton;
     private Spinner engineSpinner;
+    private List<String> massiveUserAgents;
 
     private final String[] browserEngines = {
-        "Chrome Engine",
-        "Firefox Engine",
-        "Safari Engine"
+        "Chrome Mobile Engine",
+        "Firefox Mobile Engine",
+        "Opera Mobile Engine",
+        "Safari Mobile Engine",
+        "Samsung Internet Engine"
     };
 
     @Override
@@ -36,13 +38,13 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         webView = findViewById(R.id.webView);
-        proxyIpEditText = findViewById(R.id.proxyIpEditText);
-        proxyPortEditText = findViewById(R.id.proxyPortEditText);
         urlEditText = findViewById(R.id.urlEditText);
         launchButton = findViewById(R.id.launchButton);
         engineSpinner = findViewById(R.id.engineSpinner);
 
-        // Spinner Setup
+        // Load 1000+ User Agents
+        generateMassiveUserAgents();
+
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, browserEngines);
         engineSpinner.setAdapter(adapter);
 
@@ -51,68 +53,44 @@ public class MainActivity extends AppCompatActivity {
         webSettings.setJavaScriptEnabled(true);
         webSettings.setDomStorageEnabled(true);
 
-        // Engine change listener to update User-Agent
-        engineSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String selectedEngine = browserEngines[position];
-                if (selectedEngine.contains("Chrome")) {
-                    webSettings.setUserAgentString("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36");
-                } else if (selectedEngine.contains("Firefox")) {
-                    webSettings.setUserAgentString("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0");
-                } else if (selectedEngine.contains("Safari")) {
-                    webSettings.setUserAgentString("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2.1 Safari/605.1.15");
-                }
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
-        });
-
         launchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String proxyIp = proxyIpEditText.getText().toString().trim();
-                String proxyPort = proxyPortEditText.getText().toString().trim();
                 String targetUrl = urlEditText.getText().toString().trim();
 
                 if (targetUrl.isEmpty()) {
-                    targetUrl = "https://whoer.net";
+                    targetUrl = "https://www.google.com";
                 }
 
                 if (!targetUrl.startsWith("http://") && !targetUrl.startsWith("https://")) {
                     targetUrl = "https://" + targetUrl;
                 }
 
-                final String finalUrl = targetUrl;
+                // Random User Agent select chesi apply cheyyadam (1000+ pool nundi)
+                String randomUserAgent = massiveUserAgents.get(new Random().nextInt(massiveUserAgents.size()));
+                webSettings.setUserAgentString(randomUserAgent);
 
-                if (!proxyIp.isEmpty() && !proxyPort.isEmpty()) {
-                    if (WebViewFeature.isFeatureSupported(WebViewFeature.PROXY_OVERRIDE)) {
-                        ProxyConfig.Builder proxyConfigBuilder = new ProxyConfig.Builder()
-                                .addProxyRule(proxyIp + ":" + proxyPort);
-
-                        ProxyController.getInstance().setProxyOverride(
-                                proxyConfigBuilder.build(),
-                                Runnable::run,
-                                () -> {
-                                    runOnUiThread(() -> {
-                                        Toast.makeText(MainActivity.this, "Proxy Applied: " + proxyIp, Toast.LENGTH_SHORT).show();
-                                        webView.loadUrl(finalUrl);
-                                    });
-                                }
-                        );
-                    } else {
-                        Toast.makeText(MainActivity.this, "Proxy Override not supported", Toast.LENGTH_SHORT).show();
-                        webView.loadUrl(finalUrl);
-                    }
-                } else {
-                    if (WebViewFeature.isFeatureSupported(WebViewFeature.PROXY_OVERRIDE)) {
-                        ProxyController.getInstance().clearProxyOverride(Runnable::run, () -> { });
-                    }
-                    webView.loadUrl(finalUrl);
-                }
+                webView.loadUrl(targetUrl);
             }
         });
+    }
+
+    // 1000+ Dynamic User Agents Generator
+    private void generateMassiveUserAgents() {
+        massiveUserAgents = new ArrayList<>();
+        String[] androidVersions = {"10", "11", "12", "13", "14"};
+        String[] devices = {"Pixel 6", "Pixel 7", "Galaxy S21", "Galaxy S22", "Redmi Note 10", "OnePlus 9", "Moto Gpower"};
+        
+        // Generating 1000+ combinations automatically
+        for (String android : androidVersions) {
+            for (String device : devices) {
+                for (int i = 100; i <= 300; i++) {
+                    massiveUserAgents.add("Mozilla/5.0 (Linux; Android " + android + "; " + device + ") AppleWebKit/537.36 (KHTML, like Gecko) Chrome/12" + (i % 10) + ".0.0." + i + " Mobile Safari/537.36");
+                    massiveUserAgents.add("Mozilla/5.0 (Android " + android + "; Mobile; rv:12" + (i % 10) + ".0) Gecko/12" + (i % 10) + ".0 Firefox/12" + (i % 10) + ".0");
+                    massiveUserAgents.add("Mozilla/5.0 (Linux; Android " + android + "; " + device + ") AppleWebKit/537.36 (KHTML, like Gecko) Chrome/11" + (i % 10) + ".0.0." + i + " Mobile OPR/7" + (i % 10) + ".0.2");
+                }
+            }
+        }
     }
 
     @Override
