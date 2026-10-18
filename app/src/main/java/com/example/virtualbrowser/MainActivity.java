@@ -5,6 +5,8 @@ import android.view.View;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
@@ -22,6 +24,12 @@ public class MainActivity extends AppCompatActivity {
     private Button launchButton;
     private Spinner engineSpinner;
 
+    private final String[] browserEngines = {
+        "Chrome Engine",
+        "Firefox Engine",
+        "Safari Engine"
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -34,10 +42,32 @@ public class MainActivity extends AppCompatActivity {
         launchButton = findViewById(R.id.launchButton);
         engineSpinner = findViewById(R.id.engineSpinner);
 
+        // Spinner Setup
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, browserEngines);
+        engineSpinner.setAdapter(adapter);
+
         webView.setWebViewClient(new WebViewClient());
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
         webSettings.setDomStorageEnabled(true);
+
+        // Engine change listener to update User-Agent
+        engineSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String selectedEngine = browserEngines[position];
+                if (selectedEngine.contains("Chrome")) {
+                    webSettings.setUserAgentString("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36");
+                } else if (selectedEngine.contains("Firefox")) {
+                    webSettings.setUserAgentString("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0");
+                } else if (selectedEngine.contains("Safari")) {
+                    webSettings.setUserAgentString("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2.1 Safari/605.1.15");
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
 
         launchButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -76,7 +106,6 @@ public class MainActivity extends AppCompatActivity {
                         webView.loadUrl(finalUrl);
                     }
                 } else {
-                    // Proxy లేకపోతే డైరెక్ట్ గా లోడ్ అవుతుంది
                     if (WebViewFeature.isFeatureSupported(WebViewFeature.PROXY_OVERRIDE)) {
                         ProxyController.getInstance().clearProxyOverride(Runnable::run, () -> { });
                     }
@@ -95,4 +124,3 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 }
-
