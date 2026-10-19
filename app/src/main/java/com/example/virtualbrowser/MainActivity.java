@@ -2,6 +2,8 @@ package com.example.virtualbrowser;
 
 import android.os.Bundle;
 import android.view.View;
+import android.webkit.CookieManager;
+import android.webkit.WebStorage;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -43,7 +45,6 @@ public class MainActivity extends AppCompatActivity {
         launchButton = findViewById(R.id.launchButton);
         engineSpinner = findViewById(R.id.engineSpinner);
 
-        // 2000+ User Agents ni generate cheyadam
         generate2000PlusUserAgents();
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, browserEngines);
@@ -54,7 +55,6 @@ public class MainActivity extends AppCompatActivity {
         webSettings.setJavaScriptEnabled(true);
         webSettings.setDomStorageEnabled(true);
 
-        // App open avvagane oka random user agent ni screen mida chupinchali
         if (!massiveUserAgents.isEmpty()) {
             String initialUa = massiveUserAgents.get(new Random().nextInt(massiveUserAgents.size()));
             userAgentEditText.setText(initialUa);
@@ -64,8 +64,22 @@ public class MainActivity extends AppCompatActivity {
         launchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String targetUrl = urlEditText.getText().toString().trim();
+                // 1. ప్రతిసారీ కుకీలను పూర్తిగా క్లియర్ చేయడం
+                CookieManager.getInstance().removeAllCookies(null);
+                CookieManager.getInstance().flush();
 
+                // 2. వెబ్ వ్యూ క్యాచీ మరియు డేటాను క్లియర్ చేయడం (Wait time పడకుండా ఉండటానికి)
+                webView.clearCache(true);
+                webView.clearHistory();
+                webView.clearFormData();
+                WebStorage.getInstance().deleteAllData();
+
+                // 3. కొత్త ర్యాండమ్ యూజర్ ఏజెంట్ సెట్ చేయడం (2000+ pool నుండి)
+                String randomUserAgent = massiveUserAgents.get(new Random().nextInt(massiveUserAgents.size()));
+                userAgentEditText.setText(randomUserAgent);
+                webSettings.setUserAgentString(randomUserAgent);
+
+                String targetUrl = urlEditText.getText().toString().trim();
                 if (targetUrl.isEmpty()) {
                     targetUrl = "https://whoer.net";
                 }
@@ -74,23 +88,17 @@ public class MainActivity extends AppCompatActivity {
                     targetUrl = "https://" + targetUrl;
                 }
 
-                // Prati sari search kottinappudu 2000+ pool nundi okati random ga select chesi screen mida chupinchali
-                String randomUserAgent = massiveUserAgents.get(new Random().nextInt(massiveUserAgents.size()));
-                userAgentEditText.setText(randomUserAgent);
-                webSettings.setUserAgentString(randomUserAgent);
-
+                // 4. ఫ్రెష్ సెషన్‌తో పేజ్ లోడ్ చేయడం
                 webView.loadUrl(targetUrl);
             }
         });
     }
 
-    // 2000+ Unique User Agents Generator
     private void generate2000PlusUserAgents() {
         massiveUserAgents = new ArrayList<>();
         String[] androidVersions = {"9.0", "10", "11", "12", "13", "14"};
         String[] devices = {"Pixel 5", "Pixel 6", "Pixel 7 Pro", "Galaxy S20", "Galaxy S21", "Galaxy S23", "Redmi Note 9", "Redmi Note 11", "OnePlus 8", "OnePlus 10", "Vivo V20", "Oppo Reno"};
         
-        // Loop dwara 2000 ki paiga combinations create avthayi
         for (String android : androidVersions) {
             for (String device : devices) {
                 for (int i = 10; i <= 65; i++) {
@@ -111,5 +119,5 @@ public class MainActivity extends AppCompatActivity {
             super.onBackPressed();
         }
     }
-}
-
+                                      }
+                    
