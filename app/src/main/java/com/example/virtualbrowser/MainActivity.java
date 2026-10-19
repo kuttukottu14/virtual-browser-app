@@ -14,6 +14,7 @@ import android.widget.Spinner;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -45,7 +46,6 @@ public class MainActivity extends AppCompatActivity {
         launchButton = findViewById(R.id.launchButton);
         engineSpinner = findViewById(R.id.engineSpinner);
 
-        // 2000+ User Agents ni generate cheyadam
         generate2000PlusUserAgents();
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, browserEngines);
@@ -56,7 +56,6 @@ public class MainActivity extends AppCompatActivity {
         webSettings.setJavaScriptEnabled(true);
         webSettings.setDomStorageEnabled(true);
 
-        // App open avvagane oka random user agent ni screen mida chupinchali
         if (!massiveUserAgents.isEmpty()) {
             String initialUa = massiveUserAgents.get(new Random().nextInt(massiveUserAgents.size()));
             userAgentEditText.setText(initialUa);
@@ -66,19 +65,10 @@ public class MainActivity extends AppCompatActivity {
         launchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // 1. వెబ్ స్టోరేజ్ మరియు డేటాబేస్ క్లియర్ చేయడం
-                WebStorage.getInstance().deleteAllData();
-                getApplicationContext().deleteDatabase("webview.db");
-                getApplicationContext().deleteDatabase("webviewCache.db");
+                // 1. డీప్ క్లీనింగ్: WebView ఇంటర్నల్ స్టోరేజ్ & IndexedDB ని పూర్తిగా తుడిచిపెట్టడం
+                clearAllWebViewData();
 
-                // 2. కుకీలు మరియు క్యాచీ పూర్తిగా క్లియర్ చేయడం
-                CookieManager.getInstance().removeAllCookies(null);
-                CookieManager.getInstance().flush();
-                webView.clearCache(true);
-                webView.clearHistory();
-                webView.clearFormData();
-
-                // 3. కొత్త ర్యాండమ్ యూజర్ ఏజెంట్ సెట్ చేసి స్క్రీన్ మీద చూపించడం
+                // 2. కొత్త ర్యాండమ్ యూజర్ ఏజెంట్ సెట్ చేసి స్క్రీన్ మీద చూపించడం
                 String randomUserAgent = massiveUserAgents.get(new Random().nextInt(massiveUserAgents.size()));
                 userAgentEditText.setText(randomUserAgent);
                 webSettings.setUserAgentString(randomUserAgent);
@@ -97,7 +87,40 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    // 2000+ Unique User Agents Generator
+    // WebView కి సంబంధించిన అన్ని రకాల డేటాను, స్టోరేజ్‌ని పూర్తిగా క్లియర్ చేసే ఫంక్షన్
+    private void clearAllWebViewData() {
+        try {
+            CookieManager.getInstance().removeAllCookies(null);
+            CookieManager.getInstance().flush();
+
+            webView.clearCache(true);
+            webView.clearHistory();
+            webView.clearFormData();
+            WebStorage.getInstance().deleteAllData();
+
+            // app_webview ఫోల్డర్‌ను పూర్తిగా తొలగించడం వల్ల LocalStorage/IndexedDB ఉండవు
+            File dir = new File(getFilesDir().getParent(), "app_webview");
+            deleteDir(dir);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private boolean deleteDir(File dir) {
+        if (dir != null && dir.isDirectory()) {
+            String[] children = dir.list();
+            if (children != null) {
+                for (int i = 0; i < children.length; i++) {
+                    boolean success = deleteDir(new File(dir, children[i]));
+                    if (!success) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return dir != null && dir.delete();
+    }
+
     private void generate2000PlusUserAgents() {
         massiveUserAgents = new ArrayList<>();
         String[] androidVersions = {"9.0", "10", "11", "12", "13", "14"};
