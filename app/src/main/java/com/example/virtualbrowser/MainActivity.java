@@ -45,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
         launchButton = findViewById(R.id.launchButton);
         engineSpinner = findViewById(R.id.engineSpinner);
 
+        // 2000+ User Agents ni generate cheyadam
         generate2000PlusUserAgents();
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, browserEngines);
@@ -55,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
         webSettings.setJavaScriptEnabled(true);
         webSettings.setDomStorageEnabled(true);
 
+        // App open avvagane oka random user agent ni screen mida chupinchali
         if (!massiveUserAgents.isEmpty()) {
             String initialUa = massiveUserAgents.get(new Random().nextInt(massiveUserAgents.size()));
             userAgentEditText.setText(initialUa);
@@ -64,17 +66,19 @@ public class MainActivity extends AppCompatActivity {
         launchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // 1. ప్రతిసారీ కుకీలను పూర్తిగా క్లియర్ చేయడం
+                // 1. వెబ్ స్టోరేజ్ మరియు డేటాబేస్ క్లియర్ చేయడం
+                WebStorage.getInstance().deleteAllData();
+                getApplicationContext().deleteDatabase("webview.db");
+                getApplicationContext().deleteDatabase("webviewCache.db");
+
+                // 2. కుకీలు మరియు క్యాచీ పూర్తిగా క్లియర్ చేయడం
                 CookieManager.getInstance().removeAllCookies(null);
                 CookieManager.getInstance().flush();
-
-                // 2. వెబ్ వ్యూ క్యాచీ మరియు డేటాను క్లియర్ చేయడం (Wait time పడకుండా ఉండటానికి)
                 webView.clearCache(true);
                 webView.clearHistory();
                 webView.clearFormData();
-                WebStorage.getInstance().deleteAllData();
 
-                // 3. కొత్త ర్యాండమ్ యూజర్ ఏజెంట్ సెట్ చేయడం (2000+ pool నుండి)
+                // 3. కొత్త ర్యాండమ్ యూజర్ ఏజెంట్ సెట్ చేసి స్క్రీన్ మీద చూపించడం
                 String randomUserAgent = massiveUserAgents.get(new Random().nextInt(massiveUserAgents.size()));
                 userAgentEditText.setText(randomUserAgent);
                 webSettings.setUserAgentString(randomUserAgent);
@@ -88,12 +92,12 @@ public class MainActivity extends AppCompatActivity {
                     targetUrl = "https://" + targetUrl;
                 }
 
-                // 4. ఫ్రెష్ సెషన్‌తో పేజ్ లోడ్ చేయడం
                 webView.loadUrl(targetUrl);
             }
         });
     }
 
+    // 2000+ Unique User Agents Generator
     private void generate2000PlusUserAgents() {
         massiveUserAgents = new ArrayList<>();
         String[] androidVersions = {"9.0", "10", "11", "12", "13", "14"};
@@ -119,5 +123,4 @@ public class MainActivity extends AppCompatActivity {
             super.onBackPressed();
         }
     }
-                                      }
-                    
+            }
