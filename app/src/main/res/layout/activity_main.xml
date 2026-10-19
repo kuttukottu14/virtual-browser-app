@@ -8,7 +8,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Select Browser Engine:"
+        android:text="Select Virtual Browser Engine:"
         android:textStyle="bold"
         android:textSize="16sp"
         android:layout_marginBottom="8dp"/>
@@ -23,14 +23,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginBottom="16dp">
+        android:layout_marginBottom="12dp">
 
         <EditText
-            android:id="@+id/urlEditText"
+            android:id="@+g/urlEditText"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="3"
-            android:hint="https://www.google.com"
+            android:hint="https://whoer.net"
             android:inputType="textUri" />
 
         <Button
@@ -41,10 +41,21 @@
             android:text="SEARCH" />
     </LinearLayout>
 
+    <!-- Image lo chupinattu User-Agent ikkada screen mida kanipistundi -->
+    <EditText
+        android:id="@+id/userAgentEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        android:maxLines="3"
+        android:hint="User-Agent will appear here"
+        android:layout_marginBottom="16dp"
+        android:background="@android:drawable/editbox_background_normal"
+        android:padding="8dp"/>
+
     <WebView
         android:id="@+id/webView"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
 </LinearLayout>
-
