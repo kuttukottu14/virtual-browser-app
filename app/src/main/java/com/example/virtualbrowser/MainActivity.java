@@ -46,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
         launchButton = findViewById(R.id.launchButton);
         engineSpinner = findViewById(R.id.engineSpinner);
 
+        // 2000+ User Agents ni generate cheyadam
         generate2000PlusUserAgents();
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, browserEngines);
@@ -56,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
         webSettings.setJavaScriptEnabled(true);
         webSettings.setDomStorageEnabled(true);
 
+        // App open avvagane oka random user agent ni screen mida chupinchali
         if (!massiveUserAgents.isEmpty()) {
             String initialUa = massiveUserAgents.get(new Random().nextInt(massiveUserAgents.size()));
             userAgentEditText.setText(initialUa);
@@ -82,7 +84,11 @@ public class MainActivity extends AppCompatActivity {
                     targetUrl = "https://" + targetUrl;
                 }
 
-                webView.loadUrl(targetUrl);
+                // 3. సర్వర్ టోకెన్/టైమర్ ట్రాకింగ్‌ను దాటవేయడానికి రాండమ్ పారామీటర్ (Cache-Buster) జోడించడం
+                String cacheBuster = (targetUrl.contains("?")) ? "&r=" + System.currentTimeMillis() : "?r=" + System.currentTimeMillis();
+                String finalUrl = targetUrl + cacheBuster;
+
+                webView.loadUrl(finalUrl);
             }
         });
     }
@@ -98,7 +104,6 @@ public class MainActivity extends AppCompatActivity {
             webView.clearFormData();
             WebStorage.getInstance().deleteAllData();
 
-            // app_webview ఫోల్డర్‌ను పూర్తిగా తొలగించడం వల్ల LocalStorage/IndexedDB ఉండవు
             File dir = new File(getFilesDir().getParent(), "app_webview");
             deleteDir(dir);
         } catch (Exception e) {
@@ -146,4 +151,4 @@ public class MainActivity extends AppCompatActivity {
             super.onBackPressed();
         }
     }
-            }
+    }
