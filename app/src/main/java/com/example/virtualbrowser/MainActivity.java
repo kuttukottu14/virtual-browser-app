@@ -1,10 +1,9 @@
 package com.example.virtualbrowser;
 
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.webkit.CookieManager;
+import android.webkit.WebChromeClient;
 import android.webkit.WebStorage;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
@@ -54,49 +53,35 @@ public class MainActivity extends AppCompatActivity {
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, browserEngines);
         engineSpinner.setAdapter(adapter);
 
-        // Custom WebViewClient: బయటి బ్రౌజర్లకు (Chrome) వెళ్లకుండా యాప్ లోపలే లోడ్ చేయడానికి
+        // WebView Settings అడ్వాన్స్డ్ కాన్ఫిగరేషన్
+        WebSettings webSettings = webView.getSettings();
+        webSettings.setJavaScriptEnabled(true);
+        webSettings.setDomStorageEnabled(true);
+        webSettings.setJavaScriptCanOpenWindowsAutomatically(true);
+        webSettings.setSupportMultipleWindows(true);
+        webSettings.setLoadsImagesAutomatically(true);
+        webSettings.setUseWideViewPort(true);
+        webSettings.setLoadWithOverviewMode(true);
+        webSettings.setUserAgentString("Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36");
+
+        // WebViewClient: ఎక్స్‌టర్నల్ రీడైరెక్ట్‌లను కంట్రోల్ చేయడానికి
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 String url = request.getUrl().toString();
-
-                // Standard Web URLs
+                
+                // కేవలం http లేదా https లింక్‌లను మాత్రమే వెబ్‌వ్యూలో లోడ్ చేయాలి
                 if (url.startsWith("http://") || url.startsWith("https://")) {
-                    return false; // WebView లోనే లోడ్ అవ్వనివ్వండి
+                    return false; // వెబ్‌వ్యూలోనే ఓపెన్ అవుతుంది
                 }
-
-                // Intent / Custom Schema రీడైరెక్ట్‌లు వస్తే Chrome కు వెళ్లకుండా పట్టుకోవడం
-                if (url.startsWith("intent://") || url.startsWith("intent:")) {
-                    try {
-                        Intent intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME);
-                        if (intent != null) {
-                            // 1. Fallback URL ఉంటే దానిని వెబ్‌వ్యూ లోనే లోడ్ చేయాలి
-                            String fallbackUrl = intent.getStringExtra("browser_fallback_url");
-                            if (fallbackUrl != null && !fallbackUrl.isEmpty()) {
-                                view.loadUrl(fallbackUrl);
-                                return true;
-                            }
-
-                            // 2. Intent లోని రియల్ HTTP/HTTPS URL ని ఎక్స్‌ట్రాక్ట్ చేయడం
-                            String dataString = intent.getDataString();
-                            if (dataString != null && (dataString.startsWith("http://") || dataString.startsWith("https://"))) {
-                                view.loadUrl(dataString);
-                                return true;
-                            }
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    return true; // బయటి Chrome యాప్‌కి పంపకుండా ఇక్కడే ఆపేస్తుంది
-                }
-
-                return false;
+                
+                // ఇంటెంట్ లేదా ఇతర స్కీమ్‌లను బ్లాక్ చేసి యాప్ క్రాష్ కాకుండా ఆపడం
+                return true;
             }
         });
 
-        WebSettings webSettings = webView.getSettings();
-        webSettings.setJavaScriptEnabled(true);
-        webSettings.setDomStorageEnabled(true);
+        // WebChromeClient: పాప్-అప్‌లు మరియు కొత్త విండోలను హ్యాండిల్ చేయడానికి
+        webView.setWebChromeClient(new WebChromeClient());
 
         if (!massiveUserAgents.isEmpty()) {
             String initialUa = massiveUserAgents.get(new Random().nextInt(massiveUserAgents.size()));
@@ -167,16 +152,13 @@ public class MainActivity extends AppCompatActivity {
 
     private void generate2000PlusUserAgents() {
         massiveUserAgents = new ArrayList<>();
-        String[] androidVersions = {"9.0", "10", "11", "12", "13", "14"};
-        String[] devices = {"Pixel 5", "Pixel 6", "Pixel 7 Pro", "Galaxy S20", "Galaxy S21", "Galaxy S23", "Redmi Note 9", "Redmi Note 11", "OnePlus 8", "OnePlus 10", "Vivo V20", "Oppo Reno"};
+        String[] androidVersions = {"11", "12", "13", "14"};
+        String[] devices = {"Pixel 7 Pro", "Galaxy S23", "Redmi Note 11", "OnePlus 10"};
         
         for (String android : androidVersions) {
             for (String device : devices) {
-                for (int i = 10; i <= 65; i++) {
-                    massiveUserAgents.add("Mozilla/5.0 (Linux; Android " + android + "; " + device + ") AppleWebKit/537.36 (KHTML, like Gecko) Chrome/12" + (i % 10) + ".0.6" + i + "0." + (i+20) + " Mobile Safari/537.36");
-                    massiveUserAgents.add("Mozilla/5.0 (Android " + android + "; Mobile; rv:12" + (i % 10) + ".0) Gecko/12" + (i % 10) + ".0 Firefox/12" + (i % 10) + ".0");
-                    massiveUserAgents.add("Mozilla/5.0 (Linux; Android " + android + "; " + device + ") AppleWebKit/537.36 (KHTML, like Gecko) Chrome/11" + (i % 10) + ".0.5" + i + "0.1" + " Mobile OPR/7" + (i % 10) + ".2.2");
-                    massiveUserAgents.add("Mozilla/5.0 (iPhone; CPU iPhone OS " + (i % 5 + 14) + "_" + (i % 3) + " like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16." + (i % 4) + " Mobile/15E148 Safari/604.1");
+                for (int i = 10; i <= 60; i++) {
+                    massiveUserAgents.add("Mozilla/5.0 (Linux; Android " + android + "; " + device + ") AppleWebKit/537.36 (KHTML, like Gecko) Chrome/12" + (i % 10) + ".0.0.0 Mobile Safari/537.36");
                 }
             }
         }
@@ -190,5 +172,5 @@ public class MainActivity extends AppCompatActivity {
             super.onBackPressed();
         }
     }
-                    }
-                                          
+                                                             }
+            
