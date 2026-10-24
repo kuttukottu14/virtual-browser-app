@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, browserEngines);
         engineSpinner.setAdapter(adapter);
 
-        // Custom WebViewClient: ERR_UNKNOWN_URL_SCHEME ని ఆపడానికి
+        // Custom WebViewClient: బయటి బ్రౌజర్లకు (Chrome) వెళ్లకుండా యాప్ లోపలే లోడ్ చేయడానికి
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
@@ -65,26 +65,32 @@ public class MainActivity extends AppCompatActivity {
                     return false; // WebView లోనే లోడ్ అవ్వనివ్వండి
                 }
 
-                // Custom Schemas / Intents (intent://, intent:, etc.)
-                try {
-                    Intent intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME);
-                    if (intent != null) {
-                        view.stopLoading();
-                        if (getPackageManager().resolveActivity(intent, 0) != null) {
-                            startActivity(intent);
-                        } else {
-                            // Intent కు సంబంధించిన యాప్ లేకపోతే ఫాల్‌బ్యాక్ URL ఉంటే ఓపెన్ చేస్తుంది
+                // Intent / Custom Schema రీడైరెక్ట్‌లు వస్తే Chrome కు వెళ్లకుండా పట్టుకోవడం
+                if (url.startsWith("intent://") || url.startsWith("intent:")) {
+                    try {
+                        Intent intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME);
+                        if (intent != null) {
+                            // 1. Fallback URL ఉంటే దానిని వెబ్‌వ్యూ లోనే లోడ్ చేయాలి
                             String fallbackUrl = intent.getStringExtra("browser_fallback_url");
-                            if (fallbackUrl != null) {
+                            if (fallbackUrl != null && !fallbackUrl.isEmpty()) {
                                 view.loadUrl(fallbackUrl);
+                                return true;
+                            }
+
+                            // 2. Intent లోని రియల్ HTTP/HTTPS URL ని ఎక్స్‌ట్రాక్ట్ చేయడం
+                            String dataString = intent.getDataString();
+                            if (dataString != null && (dataString.startsWith("http://") || dataString.startsWith("https://"))) {
+                                view.loadUrl(dataString);
+                                return true;
                             }
                         }
-                        return true;
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
+                    return true; // బయటి Chrome యాప్‌కి పంపకుండా ఇక్కడే ఆపేస్తుంది
                 }
-                return true;
+
+                return false;
             }
         });
 
@@ -184,5 +190,5 @@ public class MainActivity extends AppCompatActivity {
             super.onBackPressed();
         }
     }
-                                      }
-
+                    }
+                                          
