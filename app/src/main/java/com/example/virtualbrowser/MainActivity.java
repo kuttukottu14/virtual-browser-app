@@ -1,9 +1,12 @@
 package com.example.virtualbrowser;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.webkit.CookieManager;
 import android.webkit.WebStorage;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -46,18 +49,49 @@ public class MainActivity extends AppCompatActivity {
         launchButton = findViewById(R.id.launchButton);
         engineSpinner = findViewById(R.id.engineSpinner);
 
-        // 2000+ User Agents ni generate cheyadam
         generate2000PlusUserAgents();
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, browserEngines);
         engineSpinner.setAdapter(adapter);
 
-        webView.setWebViewClient(new WebViewClient());
+        // Custom WebViewClient: ERR_UNKNOWN_URL_SCHEME ని ఆపడానికి
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                String url = request.getUrl().toString();
+
+                // Standard Web URLs
+                if (url.startsWith("http://") || url.startsWith("https://")) {
+                    return false; // WebView లోనే లోడ్ అవ్వనివ్వండి
+                }
+
+                // Custom Schemas / Intents (intent://, intent:, etc.)
+                try {
+                    Intent intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME);
+                    if (intent != null) {
+                        view.stopLoading();
+                        if (getPackageManager().resolveActivity(intent, 0) != null) {
+                            startActivity(intent);
+                        } else {
+                            // Intent కు సంబంధించిన యాప్ లేకపోతే ఫాల్‌బ్యాక్ URL ఉంటే ఓపెన్ చేస్తుంది
+                            String fallbackUrl = intent.getStringExtra("browser_fallback_url");
+                            if (fallbackUrl != null) {
+                                view.loadUrl(fallbackUrl);
+                            }
+                        }
+                        return true;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return true;
+            }
+        });
+
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
         webSettings.setDomStorageEnabled(true);
 
-        // App open avvagane oka random user agent ni screen mida chupinchali
         if (!massiveUserAgents.isEmpty()) {
             String initialUa = massiveUserAgents.get(new Random().nextInt(massiveUserAgents.size()));
             userAgentEditText.setText(initialUa);
@@ -67,10 +101,10 @@ public class MainActivity extends AppCompatActivity {
         launchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // 1. డీప్ క్లీనింగ్: WebView ఇంటర్నల్ స్టోరేజ్ & IndexedDB ని పూర్తిగా తుడిచిపెట్టడం
+                // 1. డీప్ క్లీనింగ్
                 clearAllWebViewData();
 
-                // 2. కొత్త ర్యాండమ్ యూజర్ ఏజెంట్ సెట్ చేసి స్క్రీన్ మీద చూపించడం
+                // 2. కొత్త ర్యాండమ్ యూజర్ ఏజెంట్
                 String randomUserAgent = massiveUserAgents.get(new Random().nextInt(massiveUserAgents.size()));
                 userAgentEditText.setText(randomUserAgent);
                 webSettings.setUserAgentString(randomUserAgent);
@@ -84,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
                     targetUrl = "https://" + targetUrl;
                 }
 
-                // 3. సర్వర్ టోకెన్/టైమర్ ట్రాకింగ్‌ను దాటవేయడానికి రాండమ్ పారామీటర్ (Cache-Buster) జోడించడం
+                // 3. Cache-Buster Parameter
                 String cacheBuster = (targetUrl.contains("?")) ? "&r=" + System.currentTimeMillis() : "?r=" + System.currentTimeMillis();
                 String finalUrl = targetUrl + cacheBuster;
 
@@ -93,7 +127,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    // WebView కి సంబంధించిన అన్ని రకాల డేటాను, స్టోరేజ్‌ని పూర్తిగా క్లియర్ చేసే ఫంక్షన్
     private void clearAllWebViewData() {
         try {
             CookieManager.getInstance().removeAllCookies(null);
@@ -151,4 +184,5 @@ public class MainActivity extends AppCompatActivity {
             super.onBackPressed();
         }
     }
-    }
+                                      }
+
