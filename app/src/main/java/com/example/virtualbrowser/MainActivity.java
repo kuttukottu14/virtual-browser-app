@@ -1,6 +1,7 @@
 package com.example.virtualbrowser;
 
 import android.os.Bundle;
+import android.os.Message;
 import android.view.View;
 import android.webkit.CookieManager;
 import android.webkit.WebChromeClient;
@@ -53,7 +54,6 @@ public class MainActivity extends AppCompatActivity {
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, browserEngines);
         engineSpinner.setAdapter(adapter);
 
-        // WebView Settings అడ్వాన్స్డ్ కాన్ఫిగరేషన్
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
         webSettings.setDomStorageEnabled(true);
@@ -62,26 +62,37 @@ public class MainActivity extends AppCompatActivity {
         webSettings.setLoadsImagesAutomatically(true);
         webSettings.setUseWideViewPort(true);
         webSettings.setLoadWithOverviewMode(true);
-        webSettings.setUserAgentString("Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36");
 
-        // WebViewClient: ఎక్స్‌టర్నల్ రీడైరెక్ట్‌లను కంట్రోల్ చేయడానికి
+        // WebViewClient
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 String url = request.getUrl().toString();
-                
-                // కేవలం http లేదా https లింక్‌లను మాత్రమే వెబ్‌వ్యూలో లోడ్ చేయాలి
                 if (url.startsWith("http://") || url.startsWith("https://")) {
-                    return false; // వెబ్‌వ్యూలోనే ఓపెన్ అవుతుంది
+                    return false;
                 }
-                
-                // ఇంటెంట్ లేదా ఇతర స్కీమ్‌లను బ్లాక్ చేసి యాప్ క్రాష్ కాకుండా ఆపడం
                 return true;
             }
         });
 
-        // WebChromeClient: పాప్-అప్‌లు మరియు కొత్త విండోలను హ్యాండిల్ చేయడానికి
-        webView.setWebChromeClient(new WebChromeClient());
+        // WebChromeClient: "Open here" kotha window/tab open chese dani andaru control cheyadaniki
+        webView.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
+                WebView newWebView = new WebView(MainActivity.this);
+                newWebView.setWebViewClient(new WebViewClient() {
+                    @Override
+                    public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                        webView.loadUrl(request.getUrl().toString());
+                        return true;
+                    }
+                });
+                WebView.WebViewTransport transport = (WebView.WebViewTransport) resultMsg.obj;
+                transport.setWebView(newWebView);
+                resultMsg.sendToTarget();
+                return true;
+            }
+        });
 
         if (!massiveUserAgents.isEmpty()) {
             String initialUa = massiveUserAgents.get(new Random().nextInt(massiveUserAgents.size()));
@@ -92,10 +103,8 @@ public class MainActivity extends AppCompatActivity {
         launchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // 1. డీప్ క్లీనింగ్
                 clearAllWebViewData();
 
-                // 2. కొత్త ర్యాండమ్ యూజర్ ఏజెంట్
                 String randomUserAgent = massiveUserAgents.get(new Random().nextInt(massiveUserAgents.size()));
                 userAgentEditText.setText(randomUserAgent);
                 webSettings.setUserAgentString(randomUserAgent);
@@ -109,7 +118,6 @@ public class MainActivity extends AppCompatActivity {
                     targetUrl = "https://" + targetUrl;
                 }
 
-                // 3. Cache-Buster Parameter
                 String cacheBuster = (targetUrl.contains("?")) ? "&r=" + System.currentTimeMillis() : "?r=" + System.currentTimeMillis();
                 String finalUrl = targetUrl + cacheBuster;
 
@@ -172,5 +180,4 @@ public class MainActivity extends AppCompatActivity {
             super.onBackPressed();
         }
     }
-                                                             }
-            
+            }
