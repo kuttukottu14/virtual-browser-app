@@ -3,59 +3,159 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="8dp">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Select Virtual Browser Engine:"
-        android:textStyle="bold"
-        android:textSize="16sp"
-        android:layout_marginBottom="8dp"/>
-
-    <Spinner
-        android:id="@+id/engineSpinner"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"/>
-
+    <!-- Header Title & Global Search Button -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginBottom="12dp">
+        android:gravity="center_vertical"
+        android:paddingBottom="8dp">
 
-        <EditText
-            android:id="@+id/urlEditText"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="3"
-            android:hint="https://whoer.net"
-            android:inputType="textUri" />
-
-        <Button
-            android:id="@+id/launchButton"
+        <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="SEARCH" />
+            android:text="Multi-Browser Bot (3 Layouts)"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#000000"/>
+
+        <Button
+            android:id="@+id/btnSearchAll"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="SEARCH ALL"
+            android:backgroundTint="#6200EE"
+            android:textColor="#FFFFFF"/>
     </LinearLayout>
 
-    <!-- Image lo chupinattu User-Agent ikkada screen mida kanipistundi -->
-    <EditText
-        android:id="@+id/userAgentEditText"
+    <!-- Layout Tabs Navigation -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="12sp"
-        android:maxLines="3"
-        android:hint="User-Agent will appear here"
-        android:layout_marginBottom="16dp"
-        android:background="@android:drawable/editbox_background_normal"
-        android:padding="8dp"/>
+        android:orientation="horizontal"
+        android:weightSum="3"
+        android:paddingBottom="8dp">
 
-    <WebView
-        android:id="@+id/webView"
+        <Button
+            android:id="@+id/btnTab1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Layout 1"
+            style="?android:attr/buttonBarButtonStyle"/>
+
+        <Button
+            android:id="@+id/btnTab2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Layout 2"
+            style="?android:attr/buttonBarButtonStyle"/>
+
+        <Button
+            android:id="@+id/btnTab3"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Layout 3"
+            style="?android:attr/buttonBarButtonStyle"/>
+    </LinearLayout>
+
+    <!-- CONTAINER 1: Layout 1 -->
+    <LinearLayout
+        android:id="@+id/layoutContainer1"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:visibility="visible">
+
+        <EditText
+            android:id="@+id/urlEditText1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Layout 1 URL (e.g., https://softurl.free.nf/...)"
+            android:inputType="textUri"
+            android:textSize="14sp"/>
+
+        <EditText
+            android:id="@+id/uaEditText1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:editable="false"
+            android:hint="User-Agent 1"
+            android:textSize="12sp"
+            android:maxLines="2"/>
+
+        <WebView
+            android:id="@+id/webView1"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+    </LinearLayout>
+
+    <!-- CONTAINER 2: Layout 2 -->
+    <LinearLayout
+        android:id="@+id/layoutContainer2"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <EditText
+            android:id="@+id/urlEditText2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Layout 2 URL"
+            android:inputType="textUri"
+            android:textSize="14sp"/>
+
+        <EditText
+            android:id="@+id/uaEditText2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:editable="false"
+            android:hint="User-Agent 2"
+            android:textSize="12sp"
+            android:maxLines="2"/>
+
+        <WebView
+            android:id="@+id/webView2"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+    </LinearLayout>
+
+    <!-- CONTAINER 3: Layout 3 -->
+    <LinearLayout
+        android:id="@+id/layoutContainer3"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <EditText
+            android:id="@+id/urlEditText3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Layout 3 URL"
+            android:inputType="textUri"
+            android:textSize="14sp"/>
+
+        <EditText
+            android:id="@+id/uaEditText3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:editable="false"
+            android:hint="User-Agent 3"
+            android:textSize="12sp"
+            android:maxLines="2"/>
+
+        <WebView
+            android:id="@+id/webView3"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+    </LinearLayout>
 
 </LinearLayout>
+            
