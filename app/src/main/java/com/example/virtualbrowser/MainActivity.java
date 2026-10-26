@@ -49,7 +49,8 @@ public class MainActivity extends AppCompatActivity {
         launchButton = findViewById(R.id.launchButton);
         engineSpinner = findViewById(R.id.engineSpinner);
 
-        generate2000PlusUserAgents();
+        // 5000+ User Agents ni generate cheyadam
+        generate5000PlusUserAgents();
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, browserEngines);
         engineSpinner.setAdapter(adapter);
@@ -75,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // WebChromeClient: "Open here" kotha window/tab open chese dani andaru control cheyadaniki
+        // WebChromeClient: Popups and multiple windows handler
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
             public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
@@ -158,15 +159,31 @@ public class MainActivity extends AppCompatActivity {
         return dir != null && dir.delete();
     }
 
-    private void generate2000PlusUserAgents() {
+    // 5000+ Unique User Agents Generator
+    private void generate5000PlusUserAgents() {
         massiveUserAgents = new ArrayList<>();
-        String[] androidVersions = {"11", "12", "13", "14"};
-        String[] devices = {"Pixel 7 Pro", "Galaxy S23", "Redmi Note 11", "OnePlus 10"};
+        String[] androidVersions = {"8.1", "9.0", "10", "11", "12", "13", "14", "15"};
+        String[] devices = {
+            "Pixel 4", "Pixel 5", "Pixel 6", "Pixel 7 Pro", "Pixel 8", 
+            "Galaxy S10", "Galaxy S20", "Galaxy S21", "Galaxy S22 Ultra", "Galaxy S23", "Galaxy S24",
+            "Redmi Note 8", "Redmi Note 9", "Redmi Note 11", "Redmi Note 12",
+            "OnePlus 7T", "OnePlus 8", "OnePlus 10 Pro", "OnePlus 11",
+            "Vivo V20", "Vivo X90", "Oppo Reno 6", "Oppo Reno 8", "Realme gt"
+        };
         
         for (String android : androidVersions) {
             for (String device : devices) {
-                for (int i = 10; i <= 60; i++) {
-                    massiveUserAgents.add("Mozilla/5.0 (Linux; Android " + android + "; " + device + ") AppleWebKit/537.36 (KHTML, like Gecko) Chrome/12" + (i % 10) + ".0.0.0 Mobile Safari/537.36");
+                for (int i = 10; i <= 80; i++) {
+                    // Chrome Mobile
+                    massiveUserAgents.add("Mozilla/5.0 (Linux; Android " + android + "; " + device + ") AppleWebKit/537.36 (KHTML, like Gecko) Chrome/12" + (i % 10) + ".0.6" + i + "0." + (i+15) + " Mobile Safari/537.36");
+                    // Firefox Mobile
+                    massiveUserAgents.add("Mozilla/5.0 (Android " + android + "; Mobile; rv:12" + (i % 10) + ".0) Gecko/12" + (i % 10) + ".0 Firefox/12" + (i % 10) + ".0");
+                    // Samsung Internet
+                    massiveUserAgents.add("Mozilla/5.0 (Linux; Android " + android + "; " + device + ") AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/2" + (i % 5) + ".0 Chrome/12" + (i % 10) + ".0 Mobile Safari/537.36");
+                    // Opera Mobile
+                    massiveUserAgents.add("Mozilla/5.0 (Linux; Android " + android + "; " + device + ") AppleWebKit/537.36 (KHTML, like Gecko) Chrome/11" + (i % 10) + ".0.5" + i + "0.1 Mobile OPR/7" + (i % 10) + ".2.2");
+                    // iOS Safari (Mixed pool for multi-engine feel)
+                    massiveUserAgents.add("Mozilla/5.0 (iPhone; CPU iPhone OS " + (i % 5 + 13) + "_" + (i % 3) + " like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16." + (i % 4) + " Mobile/15E148 Safari/604.1");
                 }
             }
         }
@@ -181,3 +198,4 @@ public class MainActivity extends AppCompatActivity {
         }
     }
             }
+                                 
