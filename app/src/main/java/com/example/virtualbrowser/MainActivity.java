@@ -5,15 +5,14 @@ import android.os.Message;
 import android.view.View;
 import android.webkit.CookieManager;
 import android.webkit.WebChromeClient;
-import android.webkit.WebStorage;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
+import android.webkit.WebStorage;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Spinner;
+import android.widget.LinearLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -24,38 +23,68 @@ import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
 
-    private WebView webView;
-    private EditText urlEditText, userAgentEditText;
-    private Button launchButton;
-    private Spinner engineSpinner;
-    private List<String> massiveUserAgents;
+    private Button btnTab1, btnTab2, btnTab3, btnSearchAll;
+    private LinearLayout layoutContainer1, layoutContainer2, layoutContainer3;
 
-    private final String[] browserEngines = {
-        "Chrome Mobile Engine",
-        "Firefox Mobile Engine",
-        "Opera Mobile Engine",
-        "Safari Mobile Engine",
-        "Samsung Internet Engine"
-    };
+    private WebView webView1, webView2, webView3;
+    private EditText urlEditText1, urlEditText2, urlEditText3;
+    private EditText uaEditText1, uaEditText2, uaEditText3;
+
+    private List<String> massiveUserAgents;
+    private Random random = new Random();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        webView = findViewById(R.id.webView);
-        urlEditText = findViewById(R.id.urlEditText);
-        userAgentEditText = findViewById(R.id.userAgentEditText);
-        launchButton = findViewById(R.id.launchButton);
-        engineSpinner = findViewById(R.id.engineSpinner);
+        // Bind Views
+        btnTab1 = findViewById(R.id.btnTab1);
+        btnTab2 = findViewById(R.id.btnTab2);
+        btnTab3 = findViewById(R.id.btnTab3);
+        btnSearchAll = findViewById(R.id.btnSearchAll);
 
-        // 5000+ User Agents ni generate cheyadam
+        layoutContainer1 = findViewById(R.id.layoutContainer1);
+        layoutContainer2 = findViewById(R.id.layoutContainer2);
+        layoutContainer3 = findViewById(R.id.layoutContainer3);
+
+        webView1 = findViewById(R.id.webView1);
+        webView2 = findViewById(R.id.webView2);
+        webView3 = findViewById(R.id.webView3);
+
+        urlEditText1 = findViewById(R.id.urlEditText1);
+        urlEditText2 = findViewById(R.id.urlEditText2);
+        urlEditText3 = findViewById(R.id.urlEditText3);
+
+        uaEditText1 = findViewById(R.id.uaEditText1);
+        uaEditText2 = findViewById(R.id.uaEditText2);
+        uaEditText3 = findViewById(R.id.uaEditText3);
+
+        // Generate 5000+ User-Agents
         generate5000PlusUserAgents();
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, browserEngines);
-        engineSpinner.setAdapter(adapter);
+        // Setup WebViews
+        setupWebViewConfig(webView1);
+        setupWebViewConfig(webView2);
+        setupWebViewConfig(webView3);
 
-        WebSettings webSettings = webView.getSettings();
+        // Tab Switches
+        btnTab1.setOnClickListener(v -> switchTab(1));
+        btnTab2.setOnClickListener(v -> switchTab(2));
+        btnTab3.setOnClickListener(v -> switchTab(3));
+
+        // Global Search Button: Launches all 3 Layouts simultaneously with distinct UAs
+        btnSearchAll.setOnClickListener(v -> executeSearchAll());
+    }
+
+    private void switchTab(int tabIndex) {
+        layoutContainer1.setVisibility(tabIndex == 1 ? View.VISIBLE : View.GONE);
+        layoutContainer2.setVisibility(tabIndex == 2 ? View.VISIBLE : View.GONE);
+        layoutContainer3.setVisibility(tabIndex == 3 ? View.VISIBLE : View.GONE);
+    }
+
+    private void setupWebViewConfig(final WebView wv) {
+        WebSettings webSettings = wv.getSettings();
         webSettings.setJavaScriptEnabled(true);
         webSettings.setDomStorageEnabled(true);
         webSettings.setJavaScriptCanOpenWindowsAutomatically(true);
@@ -64,27 +93,22 @@ public class MainActivity extends AppCompatActivity {
         webSettings.setUseWideViewPort(true);
         webSettings.setLoadWithOverviewMode(true);
 
-        // WebViewClient
-        webView.setWebViewClient(new WebViewClient() {
+        wv.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 String url = request.getUrl().toString();
-                if (url.startsWith("http://") || url.startsWith("https://")) {
-                    return false;
-                }
-                return true;
+                return !(url.startsWith("http://") || url.startsWith("https://"));
             }
         });
 
-        // WebChromeClient: Popups and multiple windows handler
-        webView.setWebChromeClient(new WebChromeClient() {
+        wv.setWebChromeClient(new WebChromeClient() {
             @Override
             public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
                 WebView newWebView = new WebView(MainActivity.this);
                 newWebView.setWebViewClient(new WebViewClient() {
                     @Override
                     public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                        webView.loadUrl(request.getUrl().toString());
+                        wv.loadUrl(request.getUrl().toString());
                         return true;
                     }
                 });
@@ -94,37 +118,47 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
+    }
 
-        if (!massiveUserAgents.isEmpty()) {
-            String initialUa = massiveUserAgents.get(new Random().nextInt(massiveUserAgents.size()));
-            userAgentEditText.setText(initialUa);
-            webSettings.setUserAgentString(initialUa);
+    private void executeSearchAll() {
+        // Deep Clean data before launching
+        clearAllWebViewData();
+
+        // Distinct User Agents for each layout
+        String ua1 = getRandomUserAgent();
+        String ua2 = getRandomUserAgent();
+        while (ua2.equals(ua1)) ua2 = getRandomUserAgent();
+
+        String ua3 = getRandomUserAgent();
+        while (ua3.equals(ua1) || ua3.equals(ua2)) ua3 = getRandomUserAgent();
+
+        // Assign UAs & Load URLs for Layout 1
+        loadLayoutUrl(webView1, urlEditText1, uaEditText1, ua1);
+        // Assign UAs & Load URLs for Layout 2
+        loadLayoutUrl(webView2, urlEditText2, uaEditText2, ua2);
+        // Assign UAs & Load URLs for Layout 3
+        loadLayoutUrl(webView3, urlEditText3, uaEditText3, ua3);
+    }
+
+    private void loadLayoutUrl(WebView wv, EditText urlInput, EditText uaDisplay, String userAgent) {
+        wv.getSettings().setUserAgentString(userAgent);
+        uaDisplay.setText(userAgent);
+
+        String targetUrl = urlInput.getText().toString().trim();
+        if (targetUrl.isEmpty()) {
+            targetUrl = "https://whoer.net";
         }
 
-        launchButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                clearAllWebViewData();
+        if (!targetUrl.startsWith("http://") && !targetUrl.startsWith("https://")) {
+            targetUrl = "https://" + targetUrl;
+        }
 
-                String randomUserAgent = massiveUserAgents.get(new Random().nextInt(massiveUserAgents.size()));
-                userAgentEditText.setText(randomUserAgent);
-                webSettings.setUserAgentString(randomUserAgent);
+        String cacheBuster = (targetUrl.contains("?")) ? "&r=" + System.currentTimeMillis() : "?r=" + System.currentTimeMillis();
+        wv.loadUrl(targetUrl + cacheBuster);
+    }
 
-                String targetUrl = urlEditText.getText().toString().trim();
-                if (targetUrl.isEmpty()) {
-                    targetUrl = "https://whoer.net";
-                }
-
-                if (!targetUrl.startsWith("http://") && !targetUrl.startsWith("https://")) {
-                    targetUrl = "https://" + targetUrl;
-                }
-
-                String cacheBuster = (targetUrl.contains("?")) ? "&r=" + System.currentTimeMillis() : "?r=" + System.currentTimeMillis();
-                String finalUrl = targetUrl + cacheBuster;
-
-                webView.loadUrl(finalUrl);
-            }
-        });
+    private String getRandomUserAgent() {
+        return massiveUserAgents.get(random.nextInt(massiveUserAgents.size()));
     }
 
     private void clearAllWebViewData() {
@@ -132,11 +166,7 @@ public class MainActivity extends AppCompatActivity {
             CookieManager.getInstance().removeAllCookies(null);
             CookieManager.getInstance().flush();
 
-            webView.clearCache(true);
-            webView.clearHistory();
-            webView.clearFormData();
             WebStorage.getInstance().deleteAllData();
-
             File dir = new File(getFilesDir().getParent(), "app_webview");
             deleteDir(dir);
         } catch (Exception e) {
@@ -148,9 +178,8 @@ public class MainActivity extends AppCompatActivity {
         if (dir != null && dir.isDirectory()) {
             String[] children = dir.list();
             if (children != null) {
-                for (int i = 0; i < children.length; i++) {
-                    boolean success = deleteDir(new File(dir, children[i]));
-                    if (!success) {
+                for (String child : children) {
+                    if (!deleteDir(new File(dir, child))) {
                         return false;
                     }
                 }
@@ -159,7 +188,6 @@ public class MainActivity extends AppCompatActivity {
         return dir != null && dir.delete();
     }
 
-    // 5000+ Unique User Agents Generator
     private void generate5000PlusUserAgents() {
         massiveUserAgents = new ArrayList<>();
         String[] androidVersions = {"8.1", "9.0", "10", "11", "12", "13", "14", "15"};
@@ -174,15 +202,10 @@ public class MainActivity extends AppCompatActivity {
         for (String android : androidVersions) {
             for (String device : devices) {
                 for (int i = 10; i <= 80; i++) {
-                    // Chrome Mobile
                     massiveUserAgents.add("Mozilla/5.0 (Linux; Android " + android + "; " + device + ") AppleWebKit/537.36 (KHTML, like Gecko) Chrome/12" + (i % 10) + ".0.6" + i + "0." + (i+15) + " Mobile Safari/537.36");
-                    // Firefox Mobile
                     massiveUserAgents.add("Mozilla/5.0 (Android " + android + "; Mobile; rv:12" + (i % 10) + ".0) Gecko/12" + (i % 10) + ".0 Firefox/12" + (i % 10) + ".0");
-                    // Samsung Internet
                     massiveUserAgents.add("Mozilla/5.0 (Linux; Android " + android + "; " + device + ") AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/2" + (i % 5) + ".0 Chrome/12" + (i % 10) + ".0 Mobile Safari/537.36");
-                    // Opera Mobile
                     massiveUserAgents.add("Mozilla/5.0 (Linux; Android " + android + "; " + device + ") AppleWebKit/537.36 (KHTML, like Gecko) Chrome/11" + (i % 10) + ".0.5" + i + "0.1 Mobile OPR/7" + (i % 10) + ".2.2");
-                    // iOS Safari (Mixed pool for multi-engine feel)
                     massiveUserAgents.add("Mozilla/5.0 (iPhone; CPU iPhone OS " + (i % 5 + 13) + "_" + (i % 3) + " like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16." + (i % 4) + " Mobile/15E148 Safari/604.1");
                 }
             }
@@ -191,11 +214,15 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        if (webView.canGoBack()) {
-            webView.goBack();
+        if (layoutContainer1.getVisibility() == View.VISIBLE && webView1.canGoBack()) {
+            webView1.goBack();
+        } else if (layoutContainer2.getVisibility() == View.VISIBLE && webView2.canGoBack()) {
+            webView2.goBack();
+        } else if (layoutContainer3.getVisibility() == View.VISIBLE && webView3.canGoBack()) {
+            webView3.goBack();
         } else {
             super.onBackPressed();
         }
     }
-            }
-                                 
+                      }
+                
