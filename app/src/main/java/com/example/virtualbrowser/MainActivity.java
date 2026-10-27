@@ -23,12 +23,12 @@ import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Button btnTab1, btnTab2, btnTab3, btnSearchAll;
-    private LinearLayout layoutContainer1, layoutContainer2, layoutContainer3;
+    private Button btnTab1, btnTab2, btnTab3, btnTab4, btnTab5, btnSearchAll;
+    private LinearLayout layoutContainer1, layoutContainer2, layoutContainer3, layoutContainer4, layoutContainer5;
 
-    private WebView webView1, webView2, webView3;
-    private EditText urlEditText1, urlEditText2, urlEditText3;
-    private EditText uaEditText1, uaEditText2, uaEditText3;
+    private WebView webView1, webView2, webView3, webView4, webView5;
+    private EditText urlEditText1, urlEditText2, urlEditText3, urlEditText4, urlEditText5;
+    private EditText uaEditText1, uaEditText2, uaEditText3, uaEditText4, uaEditText5;
 
     private List<String> massiveUserAgents;
     private Random random = new Random();
@@ -38,42 +38,59 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Bind Views
+        // Bind Tabs & Containers
         btnTab1 = findViewById(R.id.btnTab1);
         btnTab2 = findViewById(R.id.btnTab2);
         btnTab3 = findViewById(R.id.btnTab3);
+        btnTab4 = findViewById(R.id.btnTab4);
+        btnTab5 = findViewById(R.id.btnTab5);
         btnSearchAll = findViewById(R.id.btnSearchAll);
 
         layoutContainer1 = findViewById(R.id.layoutContainer1);
         layoutContainer2 = findViewById(R.id.layoutContainer2);
         layoutContainer3 = findViewById(R.id.layoutContainer3);
+        layoutContainer4 = findViewById(R.id.layoutContainer4);
+        layoutContainer5 = findViewById(R.id.layoutContainer5);
 
+        // Bind WebViews
         webView1 = findViewById(R.id.webView1);
         webView2 = findViewById(R.id.webView2);
         webView3 = findViewById(R.id.webView3);
+        webView4 = findViewById(R.id.webView4);
+        webView5 = findViewById(R.id.webView5);
 
+        // Bind URL inputs
         urlEditText1 = findViewById(R.id.urlEditText1);
         urlEditText2 = findViewById(R.id.urlEditText2);
         urlEditText3 = findViewById(R.id.urlEditText3);
+        urlEditText4 = findViewById(R.id.urlEditText4);
+        urlEditText5 = findViewById(R.id.urlEditText5);
 
+        // Bind UA displays
         uaEditText1 = findViewById(R.id.uaEditText1);
         uaEditText2 = findViewById(R.id.uaEditText2);
         uaEditText3 = findViewById(R.id.uaEditText3);
+        uaEditText4 = findViewById(R.id.uaEditText4);
+        uaEditText5 = findViewById(R.id.uaEditText5);
 
         // Generate 5000+ User-Agents
         generate5000PlusUserAgents();
 
-        // Setup WebViews
+        // Setup WebViews configs
         setupWebViewConfig(webView1);
         setupWebViewConfig(webView2);
         setupWebViewConfig(webView3);
+        setupWebViewConfig(webView4);
+        setupWebViewConfig(webView5);
 
-        // Tab Switches
+        // Tab Switching Listeners
         btnTab1.setOnClickListener(v -> switchTab(1));
         btnTab2.setOnClickListener(v -> switchTab(2));
         btnTab3.setOnClickListener(v -> switchTab(3));
+        btnTab4.setOnClickListener(v -> switchTab(4));
+        btnTab5.setOnClickListener(v -> switchTab(5));
 
-        // Global Search Button: Launches all 3 Layouts simultaneously with distinct UAs
+        // Global Search All Button Listener
         btnSearchAll.setOnClickListener(v -> executeSearchAll());
     }
 
@@ -81,6 +98,8 @@ public class MainActivity extends AppCompatActivity {
         layoutContainer1.setVisibility(tabIndex == 1 ? View.VISIBLE : View.GONE);
         layoutContainer2.setVisibility(tabIndex == 2 ? View.VISIBLE : View.GONE);
         layoutContainer3.setVisibility(tabIndex == 3 ? View.VISIBLE : View.GONE);
+        layoutContainer4.setVisibility(tabIndex == 4 ? View.VISIBLE : View.GONE);
+        layoutContainer5.setVisibility(tabIndex == 5 ? View.VISIBLE : View.GONE);
     }
 
     private void setupWebViewConfig(final WebView wv) {
@@ -124,20 +143,21 @@ public class MainActivity extends AppCompatActivity {
         // Deep Clean data before launching
         clearAllWebViewData();
 
-        // Distinct User Agents for each layout
-        String ua1 = getRandomUserAgent();
-        String ua2 = getRandomUserAgent();
-        while (ua2.equals(ua1)) ua2 = getRandomUserAgent();
+        // Generate 5 distinct User-Agents for the 5 layouts
+        List<String> selectedUAs = new ArrayList<>();
+        while (selectedUAs.size() < 5) {
+            String ua = getRandomUserAgent();
+            if (!selectedUAs.contains(ua)) {
+                selectedUAs.add(ua);
+            }
+        }
 
-        String ua3 = getRandomUserAgent();
-        while (ua3.equals(ua1) || ua3.equals(ua2)) ua3 = getRandomUserAgent();
-
-        // Assign UAs & Load URLs for Layout 1
-        loadLayoutUrl(webView1, urlEditText1, uaEditText1, ua1);
-        // Assign UAs & Load URLs for Layout 2
-        loadLayoutUrl(webView2, urlEditText2, uaEditText2, ua2);
-        // Assign UAs & Load URLs for Layout 3
-        loadLayoutUrl(webView3, urlEditText3, uaEditText3, ua3);
+        // Load URLs for all 5 Layouts concurrently with separate UAs
+        loadLayoutUrl(webView1, urlEditText1, uaEditText1, selectedUAs.get(0));
+        loadLayoutUrl(webView2, urlEditText2, uaEditText2, selectedUAs.get(1));
+        loadLayoutUrl(webView3, urlEditText3, uaEditText3, selectedUAs.get(2));
+        loadLayoutUrl(webView4, urlEditText4, uaEditText4, selectedUAs.get(3));
+        loadLayoutUrl(webView5, urlEditText5, uaEditText5, selectedUAs.get(4));
     }
 
     private void loadLayoutUrl(WebView wv, EditText urlInput, EditText uaDisplay, String userAgent) {
@@ -220,9 +240,13 @@ public class MainActivity extends AppCompatActivity {
             webView2.goBack();
         } else if (layoutContainer3.getVisibility() == View.VISIBLE && webView3.canGoBack()) {
             webView3.goBack();
+        } else if (layoutContainer4.getVisibility() == View.VISIBLE && webView4.canGoBack()) {
+            webView4.goBack();
+        } else if (layoutContainer5.getVisibility() == View.VISIBLE && webView5.canGoBack()) {
+            webView5.goBack();
         } else {
             super.onBackPressed();
         }
     }
-                      }
-                
+            }
+                                     
